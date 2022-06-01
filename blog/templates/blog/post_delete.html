@@ -1,0 +1,18 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+<h2> Post Delete Page</h2>
+<form action="" method="post">
+    
+    <h4>Are You Sure to delete {{post.title}}!</h4>
+    <input type="submit" value="Yes">
+    {% csrf_token %}
+</form>
+
+<br>
+
+<a href="{% url 'detail' post.id%}">
+    <button>No</button>
+</a>
+
+{% endblock content %}
