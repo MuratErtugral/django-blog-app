@@ -3,6 +3,7 @@ from django.contrib.auth import logout,login
 from .forms import  UserForm,ProfileForm
 from .models import Profile
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
 
 def user_logout(request):
     logout(request)
@@ -17,7 +18,8 @@ def register(request):
 
         if form_user.is_valid():
             user = form_user.save()
-
+            profile = Profile.objects.create(username_id = user.id)
+            profile.save()
             login(request, user)
             return redirect ('home')
 
@@ -38,17 +40,18 @@ def user_login(request):
 
     return render(request, 'users/login.html', {"form":form})
 
-def profile(request):
-    form = ProfileForm(request.POST or None)
-    if form.is_valid():
-        student = form.save()
-        
-        if 'avatar' in request.FILES:
-            student.avatar = request.FILES.get('avatar')
-            student.save()
-        return redirect('home')
+@login_required(login_url="/users/login/")
+def profile(request, id):
+    user = Profile.objects.get(id=id)
+    form = ProfileForm(instance=user)
+    if request.POST:
+        form = ProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            comment = form.save()
+            comment.username_id = user.id
+            comment.save()
+            return redirect("profile", id)
+    context = { 'form':form,
+                'user': user}
 
-    context = {
-        'form' : form
-    }
-    return render(request,'users/profile.html', context)
+    return render(request, 'users/profile.html', context)
